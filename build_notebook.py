@@ -80,7 +80,6 @@ from pathlib import Path
 DRIVE_ROOT = Path('/content/drive/MyDrive')
 DEFAULT_WORKSPACE = DRIVE_ROOT / 'BlenderCloudRenderer'
 
-# @param {"type":"string"}
 workspace_path = ''  # @param {type:"string"}
 
 DEFAULT_CONFIG = {
@@ -137,12 +136,9 @@ print("Blender ver :", CONFIG['blender'].get('major_minor'))
 print("Blend file  :", CONFIG['drive'].get('blend_filename'))
 
 # - Optional live overrides.
-# @param engine engine: ["cycles","blender_eevee","eevee_next"] = "cycles"
-engine = "cycles"
-# @param mode mode: ["still","animation"] = "still"
-mode = "still"
-# @param blender_version Blender version: ["3.6","4.0","4.1","4.2","4.3","4.4","4.5","5.0","5.1","5.2"] = "4.2"
-blender_version = "4.2"
+engine = "cycles"  # @param ["cycles", "blender_eevee", "eevee_next"]
+mode = "still"  # @param ["still", "animation"]
+blender_version = "4.2"  # @param ["3.6", "4.0", "4.1", "4.2", "4.3", "4.4", "4.5", "5.0", "5.1", "5.2"]
 
 # - Apply overrides when defined.
 CONFIG['render']['engine'] = engine
