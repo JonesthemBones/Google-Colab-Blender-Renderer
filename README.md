@@ -41,7 +41,7 @@ The default file is `config.json`. Common settings are:
 
 - `drive.blend_filename`: your `.blend` filename. Default: `scene.blend`.
 - `drive.output_subfolder`: folder for the render output.
-- `render.engine`: `cycles`, `blender_eevee`, or `eevee_next`.
+- `render.engine`: `cycles` or `eevee`. Eevee automatically uses the engine supported by the selected Blender version.
 - `render.mode`: `still` or `animation`.
 - `render.samples`: render samples.
 - `blender.major_minor`: Blender version, such as `4.5` or `5.2`.

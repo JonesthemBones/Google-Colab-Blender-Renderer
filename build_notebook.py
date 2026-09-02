@@ -172,7 +172,7 @@ print('- Output folder: a subfolder inside your workspace output folder.')
 
 blend_filename = "scene.blend"  # @param {type:"string"}
 output_subfolder = "my_first_render"  # @param {type:"string"}
-render_engine = "cycles"  # @param ["cycles", "blender_eevee", "eevee_next"]
+render_engine = "cycles"  # @param ["cycles", "eevee"]
 render_mode = "still"  # @param ["still", "animation"]
 resolution_percentage = 100  # @param {type:"integer"}
 
@@ -318,8 +318,17 @@ blend = os.environ['BLEND']; out = os.environ['OUT']
 bpy.ops.wm.open_mainfile(filepath=blend)
 scene = bpy.context.scene; rd = scene.render
 rd.resolution_percentage = int(rc.get('resolution_percentage', 100))
-emap = {'cycles':'CYCLES','blender_eevee':'BLENDER_EEVEE','eevee_next':'BLENDER_EEVEE_NEXT'}
-rd.engine = emap.get(rc['engine'], 'CYCLES')
+if rc['engine'] == 'cycles':
+    rd.engine = 'CYCLES'
+else:
+    for eevee_engine in ('BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE'):
+        try:
+            rd.engine = eevee_engine
+            break
+        except TypeError:
+            continue
+    else:
+        raise RuntimeError('This Blender build does not provide an Eevee engine')
 Path(out).mkdir(parents=True, exist_ok=True)
 fmt = rc.get('file_format', 'PNG')
 rd.image_settings.file_format = fmt
@@ -333,7 +342,11 @@ if rc['engine'] == 'cycles':
     try: scene.cycles.device = 'GPU' if rc.get('use_gpu', True) else 'CPU'
     except Exception: pass
 else:
-    rd.eevee.taa_render_samples = int(rc.get('samples', 64))
+    samples = int(rc.get('samples', 64))
+    for property_name in ('taa_render_samples', 'taa_samples'):
+        if hasattr(scene.eevee, property_name):
+            setattr(scene.eevee, property_name, samples)
+            break
 if rc['mode'] == 'animation':
     fs, fe, fp = int(rc.get('frame_start',1)), int(rc.get('frame_end',scene.frame_end)), int(rc.get('frame_step',1))
     for f in range(fs, fe+1, fp):

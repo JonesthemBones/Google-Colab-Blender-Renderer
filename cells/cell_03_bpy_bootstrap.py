@@ -66,12 +66,17 @@ rd = scene.render
 rd.resolution_percentage = int(render_cfg.get("resolution_percentage", 100))
 
 # - Set the render engine.
-engine_map = {
-    "cycles": "CYCLES",
-    "blender_eevee": "BLENDER_EEVEE",
-    "eevee_next": "BLENDER_EEVEE_NEXT",
-}
-rd.engine = engine_map.get(engine, "CYCLES")
+if engine == "cycles":
+    rd.engine = "CYCLES"
+else:
+    for eevee_engine in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE"):
+        try:
+            rd.engine = eevee_engine
+            break
+        except TypeError:
+            continue
+    else:
+        raise RuntimeError("This Blender build does not provide an Eevee engine")
 
 ismetabolic = rd.engine == "CYCLES"
 if ismetabolic:
@@ -94,7 +99,11 @@ if ismetabolic:
     rd.use_file_extension = True
 else:
     # - Configure Eevee.
-    rd.eevee.taa_render_samples = int(render_cfg.get("samples", 64))
+    samples = int(render_cfg.get("samples", 64))
+    for property_name in ("taa_render_samples", "taa_samples"):
+        if hasattr(scene.eevee, property_name):
+            setattr(scene.eevee, property_name, samples)
+            break
 
 # - Configure output.
 Path(out_dir).mkdir(parents=True, exist_ok=True)
