@@ -80,6 +80,9 @@ from pathlib import Path
 DRIVE_ROOT = Path('/content/drive/MyDrive')
 DEFAULT_WORKSPACE = DRIVE_ROOT / 'BlenderCloudRenderer'
 
+# @param {"type":"string"}
+workspace_path = ''  # @param {type:"string"}
+
 DEFAULT_CONFIG = {
     'drive': {
         'folder_id': '',
@@ -103,31 +106,19 @@ DEFAULT_CONFIG = {
     'blender': {'major_minor': '4.2', 'custom_tar_url': ''},
 }
 
-def find_config_folders():
-    hits = []
-    for p in DRIVE_ROOT.rglob('config.json'):
-        if p.name == 'config.json':
-            hits.append(p.parent)
-    return hits
+CFG_FOLDER = Path(workspace_path).expanduser() if workspace_path.strip() else DEFAULT_WORKSPACE
+if not CFG_FOLDER.is_relative_to(DRIVE_ROOT):
+    raise ValueError('workspace_path must be inside /content/drive/MyDrive')
 
-hits = find_config_folders()
-print('Folders containing a config.json in your MyDrive:')
-for i, h in enumerate(hits):
-    print(f"  [{i}] {h}")
-
-if not hits:
-    DEFAULT_WORKSPACE.mkdir(parents=True, exist_ok=True)
-    (DEFAULT_WORKSPACE / 'blend_files').mkdir(exist_ok=True)
-    (DEFAULT_WORKSPACE / 'output').mkdir(exist_ok=True)
-    with open(DEFAULT_WORKSPACE / 'config.json', 'w', encoding='utf-8') as fh:
+CFG_FOLDER.mkdir(parents=True, exist_ok=True)
+(CFG_FOLDER / 'blend_files').mkdir(exist_ok=True)
+(CFG_FOLDER / 'output').mkdir(exist_ok=True)
+config_path = CFG_FOLDER / 'config.json'
+if not config_path.exists():
+    with open(config_path, 'w', encoding='utf-8') as fh:
         json.dump(DEFAULT_CONFIG, fh, indent=2)
-    CFG_FOLDER = DEFAULT_WORKSPACE
     print('Created a new workspace in:', CFG_FOLDER)
     print('Upload your .blend file to:', CFG_FOLDER / 'blend_files')
-else:
-    # @param {"type":"raw"}
-    folder_index = 0  # @param {type:"raw"}
-    CFG_FOLDER = hits[int(folder_index)]
 
 print("Selected config folder:", CFG_FOLDER)
 
@@ -147,19 +138,16 @@ print("Blend file  :", CONFIG['drive'].get('blend_filename'))
 
 # - Optional live overrides.
 # @param engine engine: ["cycles","blender_eevee","eevee_next"] = "cycles"
-# engine = "cycles"
+engine = "cycles"
 # @param mode mode: ["still","animation"] = "still"
-# mode = "still"
+mode = "still"
 # @param blender_version Blender version: ["3.6","4.0","4.1","4.2","4.3","4.4","4.5","5.0","5.1","5.2"] = "4.2"
-# blender_version = "4.2"
+blender_version = "4.2"
 
 # - Apply overrides when defined.
-if 'engine' in dir():
-    CONFIG['render']['engine'] = engine
-if 'mode' in dir():
-    CONFIG['render']['mode'] = mode
-if 'blender_version' in dir():
-    CONFIG['blender']['major_minor'] = blender_version
+CONFIG['render']['engine'] = engine
+CONFIG['render']['mode'] = mode
+CONFIG['blender']['major_minor'] = blender_version
 print("Overrides applied (if any).")
 """
 
