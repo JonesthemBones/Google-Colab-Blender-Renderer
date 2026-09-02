@@ -109,7 +109,8 @@ DEFAULT_CONFIG = {
 print('Workspace folder:')
 print('- Leave the default path to use MyDrive/BlenderCloudRenderer.')
 print('- To use another folder, replace it with a full path under /content/drive/MyDrive.')
-print('- The folder must contain config.json and blend_files/scene.blend.')
+print('- The folder must contain config.json and your .blend file.')
+print('- Put the .blend file in blend_files/, or next to config.json.')
 
 CFG_FOLDER = Path(workspace_path).expanduser()
 if not CFG_FOLDER.is_relative_to(DRIVE_ROOT):
@@ -178,13 +179,23 @@ from pathlib import Path
 
 CFG_FOLDER = Path(CFG_FOLDER)
 BLEND_DIR = CFG_FOLDER / 'blend_files'
-BLEND_PATH = BLEND_DIR / CONFIG['drive']['blend_filename']
+blend_filename = CONFIG['drive']['blend_filename']
+BLEND_PATH = BLEND_DIR / blend_filename
+if not BLEND_PATH.exists():
+    root_blend_path = CFG_FOLDER / blend_filename
+    if root_blend_path.exists():
+        BLEND_PATH = root_blend_path
 OUT_DIR = CFG_FOLDER / 'output' / CONFIG['drive'].get('output_subfolder', 'render')
 
 if not BLEND_PATH.exists():
-    print("WARNING: blend not found at", BLEND_PATH)
-    print("Upload your .blend file into the 'blend_files' subfolder next to config.json and re-run.")
+    print("WARNING: blend file not found:", blend_filename)
+    print("Accepted locations:")
+    print("-", BLEND_DIR / blend_filename)
+    print("-", CFG_FOLDER / blend_filename)
+    print("Upload the file to either location, then re-run Cell 4.")
     raise SystemExit
+
+print("Using blend file:", BLEND_PATH)
 
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
