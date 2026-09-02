@@ -314,13 +314,14 @@ from pathlib import Path
 import bpy
 cfg = json.load(open(os.environ['CFG'], encoding='utf-8'))
 rc = cfg['render']
+engine = str(rc.get('engine', 'cycles')).strip().lower()
 blend = os.environ['BLEND']; out = os.environ['OUT']
 bpy.ops.wm.open_mainfile(filepath=blend)
 scene = bpy.context.scene; rd = scene.render
 rd.resolution_percentage = int(rc.get('resolution_percentage', 100))
-if rc['engine'] == 'cycles':
+if engine == 'cycles':
     rd.engine = 'CYCLES'
-else:
+elif engine in ('eevee', 'blender_eevee', 'eevee_next'):
     for eevee_engine in ('BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE'):
         try:
             rd.engine = eevee_engine
@@ -329,11 +330,16 @@ else:
             continue
     else:
         raise RuntimeError('This Blender build does not provide an Eevee engine')
+else:
+    raise ValueError(f'Unsupported render engine: {engine!r}')
+if (engine == 'cycles') != (rd.engine == 'CYCLES'):
+    raise RuntimeError(f'Requested {engine!r}, but Blender selected {rd.engine!r}')
+print('Blender render engine:', rd.engine)
 output_root = Path(out)
 output_root.mkdir(parents=True, exist_ok=True)
 fmt = rc.get('file_format', 'PNG')
 rd.image_settings.file_format = fmt
-if rc['engine'] == 'cycles':
+if engine == 'cycles':
     scene.cycles.samples = int(rc.get('samples', 128))
     prefs = bpy.context.preferences.addons['cycles'].preferences
     try: prefs.compute_device_type = 'CUDA' if rc.get('use_gpu', True) else 'NONE'
@@ -380,10 +386,14 @@ with tempfile.NamedTemporaryFile('w', suffix='.py', delete=False) as tf:
     driver_path = tf.name
 
 env = dict(os.environ)
-env['CFG'] = str(CFG_FOLDER / 'config.json')
+runtime_config_path = Path('/content/renderer_runtime_config.json')
+with open(runtime_config_path, 'w', encoding='utf-8') as fh:
+    json.dump(CONFIG, fh, indent=2)
+env['CFG'] = str(runtime_config_path)
 env['BLEND'] = str(BLEND_PATH)
 env['OUT'] = str(OUT_DIR)
 
+print("Rendering with engine:", CONFIG['render']['engine'])
 print("Rendering ... this can take a while.")
 r = subprocess.run([str(blender_bin), '--background', '--python', driver_path], env=env)
 if r.returncode != 0:

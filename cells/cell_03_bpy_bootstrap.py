@@ -49,7 +49,7 @@ with open(cfg_path, "r", encoding="utf-8") as fh:
     cfg = json.load(fh)
 
 render_cfg = cfg["render"]
-engine = render_cfg["engine"]
+engine = str(render_cfg.get("engine", "cycles")).strip().lower()
 mode = render_cfg["mode"]
 
 # - Load the scene.
@@ -68,7 +68,7 @@ rd.resolution_percentage = int(render_cfg.get("resolution_percentage", 100))
 # - Set the render engine.
 if engine == "cycles":
     rd.engine = "CYCLES"
-else:
+elif engine in ("eevee", "blender_eevee", "eevee_next"):
     for eevee_engine in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE"):
         try:
             rd.engine = eevee_engine
@@ -77,6 +77,12 @@ else:
             continue
     else:
         raise RuntimeError("This Blender build does not provide an Eevee engine")
+else:
+    raise ValueError(f"Unsupported render engine: {engine!r}")
+
+if (engine == "cycles") != (rd.engine == "CYCLES"):
+    raise RuntimeError(f"Requested {engine!r}, but Blender selected {rd.engine!r}")
+print(f"[bpy] render engine: {rd.engine}")
 
 ismetabolic = rd.engine == "CYCLES"
 if ismetabolic:
