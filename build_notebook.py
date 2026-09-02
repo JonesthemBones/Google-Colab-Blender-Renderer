@@ -58,14 +58,33 @@ HEADER_MD = """# Blender Cloud Renderer (Eevee + Cycles)
 
 Renders a `.blend` file on a Google Colab GPU using a chosen Blender version.
 
-* **Input**: a config.json + `.blend` file in one Google Drive folder (see `config/config.json` layout).
-* **Output**: rendered still image or frame-by-frame PNGs written back to your Drive `output/` folder.
-* **Engine**: Cycles (GPU) or Eevee. **Mode**: still image, or animation (render each frame; combine to a video yourself later).
+## How to use
+
+1. Set the Colab runtime to **GPU**.
+2. Run **Step 1** and authorize your own Google Drive.
+3. Run **Step 2** and leave the default workspace path unless you want another folder.
+4. Upload your `.blend` file to the workspace root or its `blend_files` folder.
+5. Run **Step 3**, set the render options, and check the summary.
+6. Run **Step 4** to install Blender and start the render.
+7. Find the result in the workspace `output` folder.
+
+The notebook creates this workspace in your Drive:
+
+```text
+MyDrive/BlenderCloudRenderer/
+- config.json
+- blend_files/
+- output/
+```
+
+Each user authorizes and uses their own Google Drive. The notebook does not use
+the publisher's Drive.
 
 > To add a brand-new Blender version, edit the `BLENDER_DOWNLOADS` dict in cell 02 (or set `blender.custom_tar_url` in your config.json).
 """
 
-MOUNT_CELL = """# @title 1) Authorize your Google Drive
+MOUNT_CELL = """# @title Step 1 - Authorize your Google Drive
+# Run this step first, then approve the Google Drive permission request.
 # - Mounts the Drive account authorized by the user.
 # - Does not access the publisher's Drive.
 from google.colab import drive
@@ -73,7 +92,9 @@ drive.mount('/content/drive')
 print('Drive mounted at /content/drive')
 """
 
-PICKER_CELL = """# @title 2) Locate or create your renderer workspace
+PICKER_CELL = """# @title Step 2 - Choose your workspace and upload your .blend file
+# Leave the default path unless you already created another workspace.
+# After this step, upload your .blend file to the workspace root or blend_files/.
 import json
 from pathlib import Path
 
@@ -133,7 +154,7 @@ with open(CFG_FOLDER / 'config.json', 'r', encoding='utf-8') as fh:
 print("Loaded config.")
 """
 
-REVIEW_CELL = """# @title 3) Review + override configuration
+REVIEW_CELL = """# @title Step 3 - Set your render options
 print()
 print('Set the render options below. These changes apply to this run only.')
 print('- File name: the .blend file inside your workspace blend_files folder.')
@@ -173,7 +194,8 @@ print('Resolution:', resolution_percentage, '% | Samples:', samples)
 print('Run Cell 4 to install Blender and start the render.')
 """
 
-RUN_CELL = """# @title 4) Install Blender + Render
+RUN_CELL = """# @title Step 4 - Render your Blender file
+# Run this step after Step 3. Blender is downloaded into the temporary Colab runtime.
 import json, os, subprocess, tempfile, tarfile, urllib.request, shutil
 from pathlib import Path
 
