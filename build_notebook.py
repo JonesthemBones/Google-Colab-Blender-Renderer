@@ -36,7 +36,10 @@ def build() -> dict:
     cells.append(_md(HEADER_MD))
     cells.append(_code(MOUNT_CELL))
     cells.append(_code(PICKER_CELL))
-    cells.append(_code(REVIEW_CELL))
+    cells.append(_code(BASIC_SETTINGS_CELL))
+    cells.append(_code(QUALITY_SETTINGS_CELL))
+    cells.append(_code(BLENDER_SETTINGS_CELL))
+    cells.append(_code(SUMMARY_CELL))
     cells.append(_code(RUN_CELL))
     for index, cell in enumerate(cells, start=1):
         cell["metadata"]["id"] = f"blender-renderer-{index:02d}"
@@ -64,9 +67,12 @@ Renders a `.blend` file on a Google Colab GPU using a chosen Blender version.
 2. Run **Step 1** and authorize your own Google Drive.
 3. Run **Step 2** and leave the default workspace path unless you want another folder.
 4. Upload your `.blend` file to the workspace root or its `blend_files` folder.
-5. Run **Step 3**, set the render options, and check the summary.
-6. Run **Step 4** to install Blender and start the render.
-7. Find the result in the workspace `output` folder.
+5. Run **Step 3A**, set the basic render options.
+6. Run **Step 3B**, set quality and animation options.
+7. Run **Step 3C**, choose Blender or enter a custom version and URL.
+8. Run **Step 3D** and check the summary.
+9. Run **Step 4** to install Blender and start the render.
+10. Find the result in the workspace `output` folder.
 
 To use a Blender version not listed in Step 3, enter its version number and paste
 its direct Linux x64 `.tar.xz` download URL into the custom fields. Leave both
@@ -84,7 +90,7 @@ MyDrive/BlenderCloudRenderer/
 Each user authorizes and uses their own Google Drive. The notebook does not use
 the publisher's Drive.
 
-> To add a brand-new Blender version, edit the `BLENDER_DOWNLOADS` dict in cell 02 (or set `blender.custom_tar_url` in your config.json).
+Use the custom Blender fields in **Step 3C** to add a version without editing code.
 """
 
 MOUNT_CELL = """# @title Step 1 - Authorize your Google Drive
@@ -158,23 +164,35 @@ with open(CFG_FOLDER / 'config.json', 'r', encoding='utf-8') as fh:
 print("Loaded config.")
 """
 
-REVIEW_CELL = """# @title Step 3 - Set your render options
+BASIC_SETTINGS_CELL = """# @title Step 3A - Set basic render options
 print()
-print('Set the render options below. These changes apply to this run only.')
+print('These settings apply to this run only.')
 print('- File name: the .blend file inside your workspace blend_files folder.')
 print('- Output folder: a subfolder inside your workspace output folder.')
-print('- Cycles uses the GPU when GPU rendering is enabled.')
-print('- Animation renders numbered image files for the selected frame range.')
-print('- Custom Blender fields: fill in both fields only when the version is not in the dropdown.')
 
 blend_filename = "scene.blend"  # @param {type:"string"}
 output_subfolder = "my_first_render"  # @param {type:"string"}
 render_engine = "cycles"  # @param ["cycles", "blender_eevee", "eevee_next"]
 render_mode = "still"  # @param ["still", "animation"]
-blender_version = "4.2"  # @param ["3.6", "4.0", "4.1", "4.2", "4.3", "4.4", "4.5", "5.0", "5.1", "5.2"]
-custom_blender_version = ""  # @param {type:"string"}
-custom_blender_url = ""  # @param {type:"string"}
 resolution_percentage = 100  # @param {type:"integer"}
+
+CONFIG['drive']['blend_filename'] = blend_filename
+CONFIG['drive']['output_subfolder'] = output_subfolder
+CONFIG['render']['engine'] = render_engine
+CONFIG['render']['mode'] = render_mode
+CONFIG['render']['resolution_percentage'] = resolution_percentage
+print()
+print('Basic settings saved:', blend_filename, '|', render_engine, '|', render_mode, '|', resolution_percentage, '%')
+print('Run Step 3B next.')
+"""
+
+QUALITY_SETTINGS_CELL = """# @title Step 3B - Set quality and animation options
+print()
+print('Quality and animation settings:')
+print('- Samples: higher values improve quality but take longer.')
+print('- Frame range is used only when mode is animation.')
+print('- GPU applies to Cycles rendering.')
+
 samples = 128  # @param {type:"integer"}
 frame_start = 1  # @param {type:"integer"}
 frame_end = 250  # @param {type:"integer"}
@@ -182,34 +200,50 @@ frame_step = 1  # @param {type:"integer"}
 use_gpu = True  # @param {type:"boolean"}
 file_format = "PNG"  # @param ["PNG", "JPEG", "OPEN_EXR", "TIFF"]
 
-CONFIG['drive']['blend_filename'] = blend_filename
-CONFIG['drive']['output_subfolder'] = output_subfolder
-CONFIG['render']['engine'] = render_engine
-CONFIG['render']['mode'] = render_mode
-CONFIG['render']['resolution_percentage'] = resolution_percentage
 CONFIG['render']['samples'] = samples
 CONFIG['render']['frame_start'] = frame_start
 CONFIG['render']['frame_end'] = frame_end
 CONFIG['render']['frame_step'] = frame_step
 CONFIG['render']['use_gpu'] = use_gpu
 CONFIG['render']['file_format'] = file_format
-CONFIG['blender']['major_minor'] = blender_version
-CONFIG['blender']['custom_tar_url'] = custom_blender_url.strip()
-if bool(custom_blender_version.strip()) != bool(custom_blender_url.strip()):
-    raise ValueError('Enter both custom_blender_version and custom_blender_url, or leave both blank.')
-if custom_blender_version.strip():
-    CONFIG['blender']['major_minor'] = custom_blender_version.strip()
 print()
-selected_blender_version = CONFIG['blender']['major_minor']
-print('Selected:', render_engine, '|', render_mode, '| Blender', selected_blender_version)
-print('Custom Blender:', custom_blender_version.strip() or '(none; using selected version)')
-print('File:', blend_filename, '| Output:', output_subfolder)
-print('Resolution:', resolution_percentage, '% | Samples:', samples)
-print('Run Cell 4 to install Blender and start the render.')
+print('Quality settings saved. Run Step 3C next.')
+"""
+
+BLENDER_SETTINGS_CELL = """# @title Step 3C - Choose or add a Blender version
+print()
+print('Choose a listed version, or fill in both custom fields.')
+print('- Listed version: choose from the dropdown and leave custom fields blank.')
+print('- Custom version: enter the version number and a direct Linux x64 .tar.xz URL.')
+
+blender_version = "4.2"  # @param ["3.6", "4.0", "4.1", "4.2", "4.3", "4.4", "4.5", "5.0", "5.1", "5.2"]
+custom_blender_version = ""  # @param {type:"string"}
+custom_blender_url = ""  # @param {type:"string"}
+
+if bool(custom_blender_version.strip()) != bool(custom_blender_url.strip()):
+    raise ValueError('Enter both custom Blender fields, or leave both blank.')
+CONFIG['blender']['major_minor'] = custom_blender_version.strip() or blender_version
+CONFIG['blender']['custom_tar_url'] = custom_blender_url.strip()
+print()
+print('Blender selected:', CONFIG['blender']['major_minor'])
+print('Run Step 4 next.')
+"""
+
+SUMMARY_CELL = """# @title Step 3D - Check settings
+print('Render settings ready:')
+print('- File:', CONFIG['drive']['blend_filename'])
+print('- Output:', CONFIG['drive'].get('output_subfolder', 'render'))
+print('- Engine:', CONFIG['render']['engine'])
+print('- Mode:', CONFIG['render']['mode'])
+print('- Resolution:', CONFIG['render'].get('resolution_percentage', 100), '%')
+print('- Samples:', CONFIG['render'].get('samples', 128))
+print('- Blender:', CONFIG['blender']['major_minor'])
+print()
+print('If these settings look correct, run Step 4.')
 """
 
 RUN_CELL = """# @title Step 4 - Render your Blender file
-# Run this step after Step 3. Blender is downloaded into the temporary Colab runtime.
+# Run this step after Step 3D. Blender is downloaded into the temporary Colab runtime.
 import json, os, subprocess, tempfile, tarfile, urllib.request, shutil
 from pathlib import Path
 
