@@ -28,12 +28,12 @@
   },
 
   "render": {
-    "engine": "cycles",
+    "engine": "eevee",
     "_engine_options": ["cycles", "blender_eevee", "eevee_next"],
     "mode": "still",
     "_mode_options": ["still", "animation"],
     "resolution_percentage": 100,
-    "samples": 128,
+    "samples": 64,
     "frame_start": 1,
     "frame_end": 250,
     "frame_step": 1,

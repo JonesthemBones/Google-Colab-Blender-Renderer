@@ -50,7 +50,7 @@ def build() -> dict:
             "colab": {"name": "Blender Cloud Renderer", "provenance": []},
             "kernelspec": {"name": "python3", "display_name": "Python 3"},
             "language_info": {"name": "python"},
-            "accelerator": "GPU",  # request T4 by default so Cycles/GPU works
+            "accelerator": "GPU",
         },
         "cells": cells,
     }
@@ -122,10 +122,10 @@ DEFAULT_CONFIG = {
     },
     'blend': {'source': 'drive', 'url': '', 'drive_id': ''},
     'render': {
-        'engine': 'cycles',
+        'engine': 'eevee',
         'mode': 'still',
         'resolution_percentage': 100,
-        'samples': 128,
+        'samples': 64,
         'frame_start': 1,
         'frame_end': 250,
         'frame_step': 1,
@@ -172,7 +172,7 @@ print('- Output folder: a subfolder inside your workspace output folder.')
 
 blend_filename = "scene.blend"  # @param {type:"string"}
 output_subfolder = "my_first_render"  # @param {type:"string"}
-render_engine = "cycles"  # @param ["cycles", "eevee"]
+render_engine = "eevee"  # @param ["cycles", "eevee"]
 render_mode = "still"  # @param ["still", "animation"]
 resolution_percentage = 100  # @param {type:"integer"}
 
@@ -191,9 +191,9 @@ print()
 print('Quality and animation settings:')
 print('- Samples: higher values improve quality but take longer.')
 print('- Frame range is used only when mode is animation.')
-print('- GPU applies to Cycles rendering.')
+print('- GPU applies to Cycles rendering; Eevee uses the selected Blender display backend.')
 
-samples = 128  # @param {type:"integer"}
+samples = 64  # @param {type:"integer"}
 frame_start = 1  # @param {type:"integer"}
 frame_end = 250  # @param {type:"integer"}
 frame_step = 1  # @param {type:"integer"}
@@ -314,7 +314,7 @@ from pathlib import Path
 import bpy
 cfg = json.load(open(os.environ['CFG'], encoding='utf-8'))
 rc = cfg['render']
-engine = str(rc.get('engine', 'cycles')).strip().lower()
+engine = str(rc.get('engine', 'eevee')).strip().lower()
 blend = os.environ['BLEND']; out = os.environ['OUT']
 bpy.ops.wm.open_mainfile(filepath=blend)
 scene = bpy.context.scene; rd = scene.render
@@ -395,7 +395,13 @@ env['OUT'] = str(OUT_DIR)
 
 print("Rendering with engine:", CONFIG['render']['engine'])
 print("Rendering ... this can take a while.")
-r = subprocess.run([str(blender_bin), '--background', '--python', driver_path], env=env)
+engine = str(CONFIG.get('render', {}).get('engine', 'eevee')).strip().lower()
+cmd = [str(blender_bin), '--background', '--python', driver_path]
+if engine in ('eevee', 'blender_eevee', 'eevee_next'):
+    subprocess.run(['apt-get', 'update'], check=True)
+    subprocess.run(['apt-get', 'install', '-y', 'xvfb', 'libegl1-mesa', 'libgles2-mesa-dev'], check=True)
+    cmd = ['xvfb-run', '-a', '-s', '-screen 0 1920x1080x24'] + cmd
+r = subprocess.run(cmd, env=env)
 if r.returncode != 0:
     raise SystemExit(f"Blender failed with exit code {r.returncode}")
 

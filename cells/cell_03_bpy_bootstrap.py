@@ -49,7 +49,7 @@ with open(cfg_path, "r", encoding="utf-8") as fh:
     cfg = json.load(fh)
 
 render_cfg = cfg["render"]
-engine = str(render_cfg.get("engine", "cycles")).strip().lower()
+engine = str(render_cfg.get("engine", "eevee")).strip().lower()
 mode = render_cfg["mode"]
 
 # - Load the scene.

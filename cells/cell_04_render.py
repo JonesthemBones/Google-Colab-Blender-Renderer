@@ -10,6 +10,8 @@ video later, which is out of scope.
 from __future__ import annotations
 
 import os
+import platform
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -53,6 +55,11 @@ def render(preview: bool = False) -> dict:
     env.update(_inner_env())
 
     cmd = [blender_exe, "--background", "--python", driver]
+    engine = str((CTX.get("config") or {}).get("render", {}).get("engine", "eevee")).strip().lower()
+    if platform.system() == "Linux" and engine in {"eevee", "blender_eevee", "eevee_next"}:
+        xvfb = shutil.which("xvfb-run")
+        if xvfb:
+            cmd = [xvfb, "-a", "-s", "-screen 0 1920x1080x24"] + cmd
     if preview:
         cmd += ["--render-output", str(CTX["output_dir"]), "--render-frame", "1"]
     print(f"[cell04] Running: {' '.join(cmd)}")

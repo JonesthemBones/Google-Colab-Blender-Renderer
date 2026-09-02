@@ -24,6 +24,7 @@ output/*
 
 # Jupyter/Colab transient files
 .ipynb_checkpoints/
+reference/
 
 # OS/editor files
 .DS_Store
