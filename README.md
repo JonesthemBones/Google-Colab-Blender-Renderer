@@ -20,7 +20,7 @@ Render Blender scenes on a Google Colab GPU using your own Google Drive.
 - Authorize your own Google Drive when prompted.
 - Leave the workspace path as `/content/drive/MyDrive/BlenderCloudRenderer`, or replace it with another folder path inside your `MyDrive`.
 - Upload your `.blend` file to `MyDrive/BlenderCloudRenderer/blend_files/`.
-- Choose the Blender version, render engine, and render mode.
+- Set the file name, output folder, Blender version, render engine, render mode, resolution, samples, frame range, GPU use, and file format inside the notebook.
 - Find results in `MyDrive/BlenderCloudRenderer/output/`.
 
 On first use, the notebook creates this folder in your Drive:

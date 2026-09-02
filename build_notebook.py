@@ -133,24 +133,42 @@ print("Loaded config.")
 """
 
 REVIEW_CELL = """# @title 3) Review + override configuration
-print('Current file:', CONFIG['drive'].get('blend_filename', 'scene.blend'))
-print('Current samples:', CONFIG['render'].get('samples', 128))
-print('Current animation frames:', (CONFIG['render'].get('frame_start', 1), CONFIG['render'].get('frame_end', 250), CONFIG['render'].get('frame_step', 1)))
 print()
-print('Choose the settings below:')
-print('- Engine: Cycles for path tracing; Eevee for faster real-time rendering.')
-print('- Mode: Still for one image; Animation for numbered frame images.')
-print('- Blender version: use the version your .blend file was created with when possible.')
+print('Set the render options below. These changes apply to this run only.')
+print('- File name: the .blend file inside your workspace blend_files folder.')
+print('- Output folder: a subfolder inside your workspace output folder.')
+print('- Cycles uses the GPU when GPU rendering is enabled.')
+print('- Animation renders numbered image files for the selected frame range.')
 
+blend_filename = "scene.blend"  # @param {type:"string"}
+output_subfolder = "my_first_render"  # @param {type:"string"}
 render_engine = "cycles"  # @param ["cycles", "blender_eevee", "eevee_next"]
 render_mode = "still"  # @param ["still", "animation"]
 blender_version = "4.2"  # @param ["3.6", "4.0", "4.1", "4.2", "4.3", "4.4", "4.5", "5.0", "5.1", "5.2"]
+resolution_percentage = 100  # @param {type:"integer"}
+samples = 128  # @param {type:"integer"}
+frame_start = 1  # @param {type:"integer"}
+frame_end = 250  # @param {type:"integer"}
+frame_step = 1  # @param {type:"integer"}
+use_gpu = True  # @param {type:"boolean"}
+file_format = "PNG"  # @param ["PNG", "JPEG", "OPEN_EXR", "TIFF"]
 
+CONFIG['drive']['blend_filename'] = blend_filename
+CONFIG['drive']['output_subfolder'] = output_subfolder
 CONFIG['render']['engine'] = render_engine
 CONFIG['render']['mode'] = render_mode
+CONFIG['render']['resolution_percentage'] = resolution_percentage
+CONFIG['render']['samples'] = samples
+CONFIG['render']['frame_start'] = frame_start
+CONFIG['render']['frame_end'] = frame_end
+CONFIG['render']['frame_step'] = frame_step
+CONFIG['render']['use_gpu'] = use_gpu
+CONFIG['render']['file_format'] = file_format
 CONFIG['blender']['major_minor'] = blender_version
 print()
 print('Selected:', render_engine, '|', render_mode, '| Blender', blender_version)
+print('File:', blend_filename, '| Output:', output_subfolder)
+print('Resolution:', resolution_percentage, '% | Samples:', samples)
 print('Run Cell 4 to install Blender and start the render.')
 """
 
