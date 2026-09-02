@@ -244,7 +244,7 @@ print('If these settings look correct, run Step 4.')
 
 RUN_CELL = """# @title Step 4 - Render your Blender file
 # Run this step after Step 3D. Blender is downloaded into the temporary Colab runtime.
-import json, os, subprocess, tempfile, tarfile, urllib.request, shutil
+import json, os, re, subprocess, tempfile, tarfile, urllib.request, shutil
 from pathlib import Path
 
 CFG_FOLDER = Path(CFG_FOLDER)
@@ -346,6 +346,8 @@ if engine == 'cycles':
     except Exception: pass
     prefs.get_devices()
     for d in prefs.devices: d.use = rc.get('use_gpu', True)
+    print('Cycles device backend:', prefs.compute_device_type)
+    print('Cycles devices:', [d.name for d in prefs.devices if d.use])
     try: scene.cycles.device = 'GPU' if rc.get('use_gpu', True) else 'CPU'
     except Exception: pass
 else:
@@ -394,16 +396,37 @@ env['BLEND'] = str(BLEND_PATH)
 env['OUT'] = str(OUT_DIR)
 
 print("Rendering with engine:", CONFIG['render']['engine'])
-print("Rendering ... this can take a while.")
+print("Rendering ... Blender progress and remaining samples will appear below.")
 engine = str(CONFIG.get('render', {}).get('engine', 'eevee')).strip().lower()
 cmd = [str(blender_bin), '--background', '--python', driver_path]
+render_config = CONFIG.get('render', {})
+if engine == 'cycles' and render_config.get('use_gpu', True):
+    cmd += ['--', '--cycles-device', 'CUDA']
+    subprocess.run(['apt-get', 'install', '-y', 'libtcmalloc-minimal4'], check=True)
+    tcmalloc = '/usr/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4'
+    if os.path.exists(tcmalloc):
+        env['LD_PRELOAD'] = tcmalloc
 if engine in ('eevee', 'blender_eevee', 'eevee_next'):
+    env['__NV_PRIME_RENDER_OFFLOAD'] = '1'
+    env['__GLX_VENDOR_LIBRARY_NAME'] = 'nvidia'
     subprocess.run(['apt-get', 'update'], check=True)
     subprocess.run(['apt-get', 'install', '-y', 'xvfb', 'libegl1-mesa', 'libgles2-mesa-dev'], check=True)
     cmd = ['xvfb-run', '-a', '-s', '-screen 0 1920x1080x24'] + cmd
-r = subprocess.run(cmd, env=env)
-if r.returncode != 0:
-    raise SystemExit(f"Blender failed with exit code {r.returncode}")
+sample_pattern = re.compile(r'Rendering\s+(\d+)\s*/\s*(\d+)\s+samples')
+process = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                           text=True, bufsize=1)
+assert process.stdout is not None
+for line in process.stdout:
+    line = line.rstrip()
+    match = sample_pattern.search(line)
+    if match:
+        current, total = (int(value) for value in match.groups())
+        print(f'[render] Samples: {current}/{total} ({total - current} remaining)', flush=True)
+    elif line:
+        print(line, flush=True)
+r = process.wait()
+if r != 0:
+    raise SystemExit(f"Blender failed with exit code {r}")
 
 print("Done. Outputs in:", OUT_DIR)
 for f in sorted(OUT_DIR.iterdir()):

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import platform
+import re
 import shutil
 import subprocess
 import tempfile
@@ -44,6 +45,29 @@ def ensure_config_src_path() -> Path:
     return p
 
 
+def _run_blender(cmd: list, env: dict) -> int:
+    """Relay Blender output and summarize its per-sample progress."""
+    sample_pattern = re.compile(r"Rendering\s+(\d+)\s*/\s*(\d+)\s+samples")
+    process = subprocess.Popen(
+        cmd,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+    assert process.stdout is not None
+    for line in process.stdout:
+        line = line.rstrip()
+        match = sample_pattern.search(line)
+        if match:
+            current, total = (int(value) for value in match.groups())
+            print(f"[render] Samples: {current}/{total} ({total - current} remaining)", flush=True)
+        elif line:
+            print(line, flush=True)
+    return process.wait()
+
+
 def render(preview: bool = False) -> dict:
     blender_exe = CTX.get("blender_exe")
     if not blender_exe:
@@ -56,16 +80,26 @@ def render(preview: bool = False) -> dict:
 
     cmd = [blender_exe, "--background", "--python", driver]
     engine = str((CTX.get("config") or {}).get("render", {}).get("engine", "eevee")).strip().lower()
+    render_config = (CTX.get("config") or {}).get("render", {})
+    if engine == "cycles" and render_config.get("use_gpu", True):
+        cmd += ["--", "--cycles-device", "CUDA"]
     if platform.system() == "Linux" and engine in {"eevee", "blender_eevee", "eevee_next"}:
+        env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
+        env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
         xvfb = shutil.which("xvfb-run")
         if xvfb:
             cmd = [xvfb, "-a", "-s", "-screen 0 1920x1080x24"] + cmd
     if preview:
         cmd += ["--render-output", str(CTX["output_dir"]), "--render-frame", "1"]
     print(f"[cell04] Running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, env=env)
-    if result.returncode != 0:
-        raise RuntimeError(f"Blender render failed with code {result.returncode}")
+    print(f"[cell04] Engine: {engine}")
+    if platform.system() == "Linux" and engine in {"eevee", "blender_eevee", "eevee_next"}:
+        print("[cell04] Eevee GPU routing: NVIDIA OpenGL via xvfb")
+    print(f"[cell04] Output: {CTX['output_dir']}")
+    print("[cell04] Rendering; Blender progress will be shown below.", flush=True)
+    returncode = _run_blender(cmd, env)
+    if returncode != 0:
+        raise RuntimeError(f"Blender render failed with code {returncode}")
     return {"output_dir": str(CTX["output_dir"])}
 
 

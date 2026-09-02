@@ -98,6 +98,8 @@ if ismetabolic:
     prefs.get_devices()
     for dev in prefs.devices:
         dev.use = use_gpu
+    print(f"[bpy] Cycles device backend: {prefs.compute_device_type}")
+    print(f"[bpy] Cycles devices: {[dev.name for dev in prefs.devices if dev.use]}")
     try:
         scene.cycles.device = "GPU" if use_gpu else "CPU"
     except Exception:
