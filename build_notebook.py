@@ -80,8 +80,8 @@ from pathlib import Path
 DRIVE_ROOT = Path('/content/drive/MyDrive')
 DEFAULT_WORKSPACE = DRIVE_ROOT / 'BlenderCloudRenderer'
 
-# Enter a folder inside your MyDrive, or leave blank to use the default folder.
-workspace_path = ''  # @param {type:"string"}
+# Enter a folder inside your MyDrive.
+workspace_path = '/content/drive/MyDrive/BlenderCloudRenderer'  # @param {type:"string"}
 
 DEFAULT_CONFIG = {
     'drive': {
@@ -107,11 +107,11 @@ DEFAULT_CONFIG = {
 }
 
 print('Workspace folder:')
-print('- Leave workspace_path blank for MyDrive/BlenderCloudRenderer.')
-print('- To use another folder, enter its full path under /content/drive/MyDrive.')
+print('- Leave the default path to use MyDrive/BlenderCloudRenderer.')
+print('- To use another folder, replace it with a full path under /content/drive/MyDrive.')
 print('- The folder must contain config.json and blend_files/scene.blend.')
 
-CFG_FOLDER = Path(workspace_path).expanduser() if workspace_path.strip() else DEFAULT_WORKSPACE
+CFG_FOLDER = Path(workspace_path).expanduser()
 if not CFG_FOLDER.is_relative_to(DRIVE_ROOT):
     raise ValueError('workspace_path must be inside /content/drive/MyDrive')
 
