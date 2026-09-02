@@ -71,7 +71,7 @@ Blender version downloads are defined in `cells/cell_02_blender.py`.
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0.
+This project is licensed under the MIT License.
 See [LICENSE](LICENSE) for details.
 
 ## Publishing updates
