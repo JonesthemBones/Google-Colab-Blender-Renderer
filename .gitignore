@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local Blender installation and temporary downloads
+.blender_install/
+blender_versions/
+*.tar.xz
+
+# User assets and local render output
+config/blend_files/*
+config/output/*
+output/*
+
+# Keep the folder structure in a fresh clone
+!config/blend_files/.gitkeep
+!config/output/.gitkeep
+!output/.gitkeep
+
+# Jupyter/Colab transient files
+.ipynb_checkpoints/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/

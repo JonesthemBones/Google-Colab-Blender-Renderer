@@ -1,0 +1,53 @@
+{
+  "_comment": "Google Drive-based configuration for the Blender cloud renderer.",
+  "_drive_layout": {
+    "_note": "Everything below lives inside ONE folder on your Google Drive, e.g. MyDrive/BlenderCloudRenderer",
+    "_structure": {
+      "config.json": "This file. Drive folder + name/URL of the .blend, output folder name, animation flags, frames, engine, version",
+      "blend_files/": "Drop your .blend file(s) here (or reference by Drive ID / public link)",
+      "output/": "Rendered images / animation frames land here"
+    }
+  },
+
+  "drive": {
+    "folder_id": "PASTE_YOUR_GOOGLE_DRIVE_FOLDER_ID_HERE",
+    "_folder_id_note": "Optional: hardcode the folder ID to skip interactive selection. Leave blank to pick folder in Colab UI.",
+    "blend_filename": "scene.blend",
+    "output_subfolder": "my_first_render"
+  },
+
+  "blend": {
+    "source": "drive",
+    "_source_options": {
+      "drive": "Look in drive.folder_id for drive.blend_filename",
+      "url": "Download the blend from blend.url",
+      "drive_id": "Download by file ID from blend.drive_id"
+    },
+    "url": "",
+    "drive_id": ""
+  },
+
+  "render": {
+    "engine": "cycles",
+    "_engine_options": ["cycles", "blender_eevee", "eevee_next"],
+    "mode": "still",
+    "_mode_options": ["still", "animation"],
+    "resolution_percentage": 100,
+    "samples": 128,
+    "frame_start": 1,
+    "frame_end": 250,
+    "frame_step": 1,
+    "use_gpu": true,
+    "_use_gpu_note": "Cycles only. Colab must supply an available GPU (T4 works, A100 recommended).",
+    "file_format": "PNG",
+    "_file_format_options": ["PNG", "JPEG", "OPEN_EXR", "TIFF", "FFMPEG"],
+    "color_mode": "RGBA",
+    "device": "GPU"
+  },
+
+  "blender": {
+    "major_minor": "4.2",
+    "_version_note": "See cell 02: a custom tar can be added by editing BLENDER_DOWNLOADS below the huge list.",
+    "custom_tar_url": ""
+  }
+}
