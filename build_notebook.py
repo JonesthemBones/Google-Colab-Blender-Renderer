@@ -80,6 +80,7 @@ from pathlib import Path
 DRIVE_ROOT = Path('/content/drive/MyDrive')
 DEFAULT_WORKSPACE = DRIVE_ROOT / 'BlenderCloudRenderer'
 
+# Enter a folder inside your MyDrive, or leave blank to use the default folder.
 workspace_path = ''  # @param {type:"string"}
 
 DEFAULT_CONFIG = {
@@ -105,6 +106,11 @@ DEFAULT_CONFIG = {
     'blender': {'major_minor': '4.2', 'custom_tar_url': ''},
 }
 
+print('Workspace folder:')
+print('- Leave workspace_path blank for MyDrive/BlenderCloudRenderer.')
+print('- To use another folder, enter its full path under /content/drive/MyDrive.')
+print('- The folder must contain config.json and blend_files/scene.blend.')
+
 CFG_FOLDER = Path(workspace_path).expanduser() if workspace_path.strip() else DEFAULT_WORKSPACE
 if not CFG_FOLDER.is_relative_to(DRIVE_ROOT):
     raise ValueError('workspace_path must be inside /content/drive/MyDrive')
@@ -127,24 +133,25 @@ print("Loaded config.")
 """
 
 REVIEW_CELL = """# @title 3) Review + override configuration
-p = lambda d: d if d else '(not set)'
-print("Engine      :", CONFIG['render']['engine'])
-print("Mode        :", CONFIG['render']['mode'])
-print("Samples     :", CONFIG['render'].get('samples'))
-print("Frames      :", (CONFIG['render'].get('frame_start'), CONFIG['render'].get('frame_end'), CONFIG['render'].get('frame_step')))
-print("Blender ver :", CONFIG['blender'].get('major_minor'))
-print("Blend file  :", CONFIG['drive'].get('blend_filename'))
+print('Current file:', CONFIG['drive'].get('blend_filename', 'scene.blend'))
+print('Current samples:', CONFIG['render'].get('samples', 128))
+print('Current animation frames:', (CONFIG['render'].get('frame_start', 1), CONFIG['render'].get('frame_end', 250), CONFIG['render'].get('frame_step', 1)))
+print()
+print('Choose the settings below:')
+print('- Engine: Cycles for path tracing; Eevee for faster real-time rendering.')
+print('- Mode: Still for one image; Animation for numbered frame images.')
+print('- Blender version: use the version your .blend file was created with when possible.')
 
-# - Optional live overrides.
-engine = "cycles"  # @param ["cycles", "blender_eevee", "eevee_next"]
-mode = "still"  # @param ["still", "animation"]
+render_engine = "cycles"  # @param ["cycles", "blender_eevee", "eevee_next"]
+render_mode = "still"  # @param ["still", "animation"]
 blender_version = "4.2"  # @param ["3.6", "4.0", "4.1", "4.2", "4.3", "4.4", "4.5", "5.0", "5.1", "5.2"]
 
-# - Apply overrides when defined.
-CONFIG['render']['engine'] = engine
-CONFIG['render']['mode'] = mode
+CONFIG['render']['engine'] = render_engine
+CONFIG['render']['mode'] = render_mode
 CONFIG['blender']['major_minor'] = blender_version
-print("Overrides applied (if any).")
+print()
+print('Selected:', render_engine, '|', render_mode, '| Blender', blender_version)
+print('Run Cell 4 to install Blender and start the render.')
 """
 
 RUN_CELL = """# @title 4) Install Blender + Render
