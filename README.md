@@ -47,7 +47,9 @@ The default file is `config.json`. Common settings are:
 - `blender.major_minor`: Blender version, such as `4.5` or `5.2`.
 
 For animation, set `frame_start`, `frame_end`, and `frame_step`. Frames are saved
-as numbered PNG files.
+as numbered PNG files. Repeated still renders use names such as `render.png`,
+`render_001.png`, and `render_002.png`. Repeated animations use separate folders
+such as `animation/`, `animation_001/`, and `animation_002/`.
 
 ## Local development
 

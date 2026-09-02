@@ -106,14 +106,20 @@ else:
             break
 
 # - Configure output.
-Path(out_dir).mkdir(parents=True, exist_ok=True)
+output_root = Path(out_dir)
+output_root.mkdir(parents=True, exist_ok=True)
 fmt = render_cfg.get("file_format", "PNG")
-rd.filepath = str(Path(out_dir) / "frame_")
 
 if mode == "still":
     # - Set the still-render frame.
     scene.frame_set(int(render_cfg.get("frame_start", 1)))
-    rd.filepath = str(Path(out_dir) / "render")
+    suffix = f".{fmt.lower()}"
+    still_path = output_root / f"render{suffix}"
+    for index in range(1, 10000):
+        if not still_path.exists():
+            break
+        still_path = output_root / f"render_{index:03d}{suffix}"
+    rd.filepath = str(still_path.with_suffix(""))
     rd.image_settings.file_format = fmt
     if "color_mode" in render_cfg:
         rd.image_settings.color_mode = render_cfg["color_mode"]
@@ -121,6 +127,13 @@ if mode == "still":
     print(f"[bpy] rendered still frame {scene.frame_current}")
 else:
     # - Render animation frames as PNG files.
+    animation_dir = output_root / "animation"
+    for index in range(1, 10000):
+        candidate = output_root / f"animation_{index:03d}"
+        if not animation_dir.exists():
+            break
+        animation_dir = candidate
+    animation_dir.mkdir(parents=True, exist_ok=True)
     fstart = int(render_cfg.get("frame_start", scene.frame_start))
     fend = int(render_cfg.get("frame_end", scene.frame_end))
     fstep = int(render_cfg.get("frame_step", 1))
@@ -129,7 +142,7 @@ else:
         rd.image_settings.color_mode = render_cfg["color_mode"]
     for f in range(fstart, fend + 1, fstep):
         scene.frame_set(f)
-        rd.filepath = str(Path(out_dir) / f"frame_{f:05d}.{fmt.lower()}")
+        rd.filepath = str(animation_dir / f"frame_{f:05d}.{fmt.lower()}")
         bpy.ops.render.render(write_still=True)
         print(f"[bpy] rendered frame {f}")
 
