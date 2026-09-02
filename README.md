@@ -1,117 +1,69 @@
-# Google Colab Eevee-Compatible Blender Cloud Renderer
+# Blender Cloud Renderer for Google Colab
 
-A Google Colab-based **Blender cloud renderer** that:
-- Renders `.blend` files on a Colab GPU.
-- Supports **both Eevee and Cycles** engines.
-- Renders a **single still image** OR **frame-by-frame animation**.
-- Is configured entirely from a **Google Drive folder** (config.json + your `.blend`).
-- Lets you pick which **Blender version** to use, and **add new versions** easily.
+Render Blender scenes on a Google Colab GPU using your own Google Drive.
 
-The UX/UI is delivered inside the Colab notebook itself. This repo is the *local
-development* home, structured as **cells** (one Python module per Colab code cell)
-so you can build and test the pipeline locally before deploying to Colab.
+- Supports Eevee and Cycles.
+- Renders still images or animation frames.
+- Supports Blender 3.6, 4.0-4.5, and 5.0-5.2.
+- Uses the Google account authorized by each user.
 
-## Structure
+## Open in Colab
 
-```
-├── cells/                        # one module = one Colab "cell"
-│   ├── _state.py                 # shared CTX dict threaded across cells
-│   ├── cell_01_drive_config.py   # Drive mount + config.json + resolve .blend/output
-│   ├── cell_02_blender.py        # Blender version manager (tar download/install)
-│   ├── cell_03_bpy_bootstrap.py  # BPY driver script (runs inside Blender)
-│   ├── cell_04_render.py         # render coordinator (headless subprocess)
-│   └── cell_05_runner.py         # local orchestrator (mirrors Colab cell order)
-├── build_notebook.py             # generates the .ipynb for Colab (UI)
-├── notebooks/                    # generated Blender_Cloud_Renderer.ipynb
-├── config/                       # LOCAL mirror of your Drive config folder
-│   ├── config.json               # all user customization lives here
-│   ├── blend_files/              # drop your .blend here (locally for testing)
-│   └── output/                   # renders land here (locally for testing)
-└── output/                       # (optional) alt local output location
+[Launch the renderer](https://colab.research.google.com/github/JonesthemBones/Google-Colab-Blender-Renderer/blob/master/notebooks/Blender_Cloud_Renderer.ipynb)
+
+- Set the runtime to **GPU**.
+- Run the notebook from top to bottom.
+- Authorize your own Google Drive when prompted.
+- Upload your `.blend` file to `MyDrive/BlenderCloudRenderer/blend_files/`.
+- Choose the Blender version, render engine, and render mode.
+- Find results in `MyDrive/BlenderCloudRenderer/output/`.
+
+On first use, the notebook creates this folder in your Drive:
+
+```text
+BlenderCloudRenderer/
+- config.json
+- blend_files/
+- output/
 ```
 
-## The config.json (user customization)
+The notebook does not use the publisher's Drive.
 
-Everything the user tweaks lives in one `config.json` stored in a Google Drive
-folder. It controls:
+## Configuration
 
-| Section | What it sets |
-|---|---|
-| `drive.folder_id` | (optional) hardcode your Drive folder ID to skip picking |
-| `drive.blend_filename` | name of your `.blend` file |
-| `drive.output_subfolder` | subfolder under `output/` for this render |
-| `blend.source` | `drive` / `url` / `drive_id` |
-| `render.engine` | `cycles` \| `blender_eevee` \| `eevee_next` |
-| `render.mode` | `still` or `animation` |
-| `render.frame_start/end/step` | animation frame range |
-| `render.samples` | Cycles/EEVEE samples |
-| `blender.major_minor` | Blender version, e.g. `"4.2"` |
-| `blender.custom_tar_url` | add a custom/new Blender build |
+The default file is `config.json`. Common settings are:
 
-## Local development (build here first)
+- `drive.blend_filename`: your `.blend` filename. Default: `scene.blend`.
+- `drive.output_subfolder`: folder for the render output.
+- `render.engine`: `cycles`, `blender_eevee`, or `eevee_next`.
+- `render.mode`: `still` or `animation`.
+- `render.samples`: render samples.
+- `blender.major_minor`: Blender version, such as `4.5` or `5.2`.
 
-> Requires Python 3 and, for an actual render, a Blender binary. On Windows the
-> downloader uses the Linux tar (for Colab), so to render *locally* install
-> Blender yourself and ensure a `blender` binary is on PATH (see below).
+For animation, set `frame_start`, `frame_end`, and `frame_step`. Frames are saved
+as numbered PNG files.
 
-1. **Set up the local config mirror** so the pipeline can run without Drive:
-   - Edit `config/config.json` (it doubles as your local config).
-   - Put your `.blend` at `config/blend_files/scene.blend` (or change `blend_filename`).
+## Local development
 
-2. **Dry-run the pipeline** (verifies cell order + config resolution):
-   ```
-   python -c "import sys; sys.path.insert(0,'.'); from cells import cell_05_runner as r; print(r.run())"
-   ```
-   This runs cells 01→04. It will stop with a clear message at whatever stage
-   needs a real asset (e.g. missing blend, or missing local Blender).
+Requires Python 3. To regenerate the notebook after changing the source cells:
 
-3. **Local render with a real Blender**: point the downloader/runner at a local
-   Blender binary instead of the Colab tar. The cleanest way is to install
-   Blender and add it to PATH, then run:
-   ```
-   python -c "import sys; sys.path.insert(0,'.'); from cells import cell_05_runner as r; r.run()"
-   ```
-   (Cells 02–04 already pick up any `blender` on PATH for local runs.)
-
-### Adding a new Blender version
-Open `cells/cell_02_blender.py` → `BLENDER_DOWNLOADS` and add a line, e.g.:
-```python
-"4.5": "https://download.blender.org/release/Blender4.5/blender-4.5.0-linux-x64.tar.xz",
+```text
+python build_notebook.py
 ```
-or set `blender.custom_tar_url` in `config.json`. The same map is embedded in the
-generated Colab notebook.
 
-## Publishing and using in Google Colab
+The generated notebook is `notebooks/Blender_Cloud_Renderer.ipynb`.
 
-The notebook is designed to be shared publicly. It never uses the publisher's
-Google Drive. Each person runs it with their own Colab session and authorizes
-their own Google account when the mount cell runs.
+For local rendering, install Blender and add its executable to PATH. Then run:
 
-### Publish the notebook
+```text
+python run_local.py
+```
 
-1. Build the notebook locally:
-   ```
-   python build_notebook.py
-   ```
-2. Commit `notebooks/Blender_Cloud_Renderer.ipynb` to GitHub.
-3. Open it in Colab with:
-   `https://colab.research.google.com/github/OWNER/REPOSITORY/blob/main/notebooks/Blender_Cloud_Renderer.ipynb`
-4. Share that Colab link or the GitHub notebook link. Do not share your personal
-   Drive folder as part of the application.
+Blender version downloads are defined in `cells/cell_02_blender.py`.
 
-### User workflow
+## Publishing updates
 
-1. Open the notebook in Colab and choose a **GPU runtime**.
-2. Run the authorization/mount cell and authorize the user's Google account.
-3. Run the workspace cell. If no renderer workspace exists, it creates:
-   `MyDrive/BlenderCloudRenderer/` with `config.json`, `blend_files/`, and `output/`.
-4. Upload the user's `.blend` file into `blend_files/`. Change `blend_filename` in
-   `config.json` if it is not named `scene.blend`.
-5. Run the review cell, then the render cell. Results are written to that user's
-   own Drive under `output/`.
-
-Users can also prepare their own folder and `config.json` first; the workspace
-cell lists all matching folders in their `MyDrive` and lets them select one.
-
-Animation frames come out as numbered PNGs; combine them into a video yourself
-later (out of scope, as requested).
+- Regenerate the notebook with `python build_notebook.py`.
+- Commit the source and generated notebook.
+- Push to GitHub.
+- Share the Colab link above.
