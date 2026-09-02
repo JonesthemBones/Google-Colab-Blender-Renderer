@@ -68,6 +68,9 @@ Renders a `.blend` file on a Google Colab GPU using a chosen Blender version.
 6. Run **Step 4** to install Blender and start the render.
 7. Find the result in the workspace `output` folder.
 
+To use a Blender version not listed in Step 3, paste its Linux x64 `.tar.xz`
+download URL into the custom Blender URL field. Leave it blank to use the version dropdown.
+
 The notebook creates this workspace in your Drive:
 
 ```text
@@ -161,12 +164,14 @@ print('- File name: the .blend file inside your workspace blend_files folder.')
 print('- Output folder: a subfolder inside your workspace output folder.')
 print('- Cycles uses the GPU when GPU rendering is enabled.')
 print('- Animation renders numbered image files for the selected frame range.')
+print('- Custom Blender URL: leave blank for the dropdown, or paste a direct Linux x64 .tar.xz URL.')
 
 blend_filename = "scene.blend"  # @param {type:"string"}
 output_subfolder = "my_first_render"  # @param {type:"string"}
 render_engine = "cycles"  # @param ["cycles", "blender_eevee", "eevee_next"]
 render_mode = "still"  # @param ["still", "animation"]
 blender_version = "4.2"  # @param ["3.6", "4.0", "4.1", "4.2", "4.3", "4.4", "4.5", "5.0", "5.1", "5.2"]
+custom_blender_url = ""  # @param {type:"string"}
 resolution_percentage = 100  # @param {type:"integer"}
 samples = 128  # @param {type:"integer"}
 frame_start = 1  # @param {type:"integer"}
@@ -187,8 +192,10 @@ CONFIG['render']['frame_step'] = frame_step
 CONFIG['render']['use_gpu'] = use_gpu
 CONFIG['render']['file_format'] = file_format
 CONFIG['blender']['major_minor'] = blender_version
+CONFIG['blender']['custom_tar_url'] = custom_blender_url.strip()
 print()
 print('Selected:', render_engine, '|', render_mode, '| Blender', blender_version)
+print('Custom Blender URL:', custom_blender_url.strip() or '(none; using selected version)')
 print('File:', blend_filename, '| Output:', output_subfolder)
 print('Resolution:', resolution_percentage, '% | Samples:', samples)
 print('Run Cell 4 to install Blender and start the render.')
