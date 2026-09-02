@@ -7,9 +7,9 @@ Render Blender scenes on a Google Colab GPU using your own Google Drive.
 - Supports Blender 3.6, 4.0-4.5, and 5.0-5.2.
 - Uses the Google account authorized by each user.
 
-## Open in Colab
+## Start Here
 
-[Launch the renderer](https://colab.research.google.com/github/JonesthemBones/Google-Colab-Blender-Renderer/blob/main/notebooks/Blender_Cloud_Renderer.ipynb)
+### [Launch Blender Cloud Renderer in Google Colab](https://colab.research.google.com/github/JonesthemBones/Google-Colab-Blender-Renderer/blob/main/notebooks/Blender_Cloud_Renderer.ipynb)
 
 > **Warning:** The link loads the latest notebook pushed to GitHub. An already-open
 > Colab session or a copy saved to Google Drive will not update automatically.
