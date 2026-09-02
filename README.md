@@ -9,7 +9,7 @@ Render Blender scenes on a Google Colab GPU using your own Google Drive.
 
 ## Open in Colab
 
-[Launch the renderer](https://colab.research.google.com/github/JonesthemBones/Google-Colab-Blender-Renderer/blob/master/notebooks/Blender_Cloud_Renderer.ipynb)
+[Launch the renderer](https://colab.research.google.com/github/JonesthemBones/Google-Colab-Blender-Renderer/blob/main/notebooks/Blender_Cloud_Renderer.ipynb)
 
 - Set the runtime to **GPU**.
 - Run the notebook from top to bottom.
@@ -60,6 +60,11 @@ python run_local.py
 ```
 
 Blender version downloads are defined in `cells/cell_02_blender.py`.
+
+## License
+
+This project is licensed under the GNU General Public License v3.0.
+See [LICENSE](LICENSE) for details.
 
 ## Publishing updates
 
