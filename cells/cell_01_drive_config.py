@@ -66,7 +66,7 @@ def _resolve_blend(config: dict, drive_root: Path) -> Path:
             "in config.json instead."
         )
 
-    # default: 'drive' -> a normal file inside the Drive folder
+    # - Resolve a normal file inside the Drive folder.
     fname = config["drive"].get("blend_filename", "scene.blend")
     for candidate in (blend_dir / fname, drive_root / fname):
         if candidate.exists():
@@ -90,7 +90,7 @@ def _drive_folder(config: dict) -> Path:
     or a supplied path. The Colab notebook cell wraps this with an interactive
     folder picker when folder_id is blank.
     """
-    # A caller on Colab may stash the chosen folder path in CTX["drive_root_path"].
+    # - Use the folder selected by the Colab notebook when available.
     chosen = CTX.get("drive_root_path")
     if chosen:
         return Path(chosen)
@@ -99,7 +99,7 @@ def _drive_folder(config: dict) -> Path:
     env_root = ENV.get("DRIVE_ROOT")
     if env_root:
         return Path(env_root)
-    # Local dev mirror.
+    # - Use the local config mirror during development.
     return _local_drive_root()
 
 

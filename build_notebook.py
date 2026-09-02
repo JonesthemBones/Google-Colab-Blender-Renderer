@@ -22,11 +22,13 @@ OUT = ROOT / "notebooks" / "Blender_Cloud_Renderer.ipynb"
 
 def _code(src: str) -> dict:
     return {"cell_type": "code", "execution_count": None,
-            "metadata": {}, "outputs": [], "source": src.splitlines(keepends=True)}
+            "metadata": {"language": "python"}, "outputs": [],
+            "source": src.splitlines(keepends=True)}
 
 
 def _md(src: str) -> dict:
-    return {"cell_type": "markdown", "metadata": {}, "source": src.splitlines(keepends=True)}
+    return {"cell_type": "markdown", "metadata": {"language": "markdown"},
+            "source": src.splitlines(keepends=True)}
 
 
 def build() -> dict:
@@ -36,6 +38,8 @@ def build() -> dict:
     cells.append(_code(PICKER_CELL))
     cells.append(_code(REVIEW_CELL))
     cells.append(_code(RUN_CELL))
+    for index, cell in enumerate(cells, start=1):
+        cell["metadata"]["id"] = f"blender-renderer-{index:02d}"
     nb = {
         "nbformat": 4,
         "nbformat_minor": 0,
@@ -62,8 +66,8 @@ Renders a `.blend` file on a Google Colab GPU using a chosen Blender version.
 """
 
 MOUNT_CELL = """# @title 1) Authorize your Google Drive
-# This mounts the Drive of the Google account you authorize in the prompt.
-# It does not access the notebook publisher's Drive.
+# - Mounts the Drive account authorized by the user.
+# - Does not access the publisher's Drive.
 from google.colab import drive
 drive.mount('/content/drive')
 print('Drive mounted at /content/drive')
@@ -141,7 +145,7 @@ print("Frames      :", (CONFIG['render'].get('frame_start'), CONFIG['render'].ge
 print("Blender ver :", CONFIG['blender'].get('major_minor'))
 print("Blend file  :", CONFIG['drive'].get('blend_filename'))
 
-# Optional live overrides (edit these before running cell 4)
+# - Optional live overrides.
 # @param engine engine: ["cycles","blender_eevee","eevee_next"] = "cycles"
 # engine = "cycles"
 # @param mode mode: ["still","animation"] = "still"
@@ -149,7 +153,7 @@ print("Blend file  :", CONFIG['drive'].get('blend_filename'))
 # @param blender_version Blender version: ["3.6","4.0","4.1","4.2","4.3","4.4","4.5","5.0","5.1","5.2"] = "4.2"
 # blender_version = "4.2"
 
-# Apply overrides if uncommented
+# - Apply overrides when defined.
 if 'engine' in dir():
     CONFIG['render']['engine'] = engine
 if 'mode' in dir():
@@ -175,7 +179,7 @@ if not BLEND_PATH.exists():
 
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# --- Blender version download map (add new versions here) ---
+# - Blender version download map.
 BLENDER_DOWNLOADS = {
     "3.6": "https://download.blender.org/release/Blender3.6/blender-3.6.12-linux-x64.tar.xz",
     "4.0": "https://download.blender.org/release/Blender4.0/blender-4.0.2-linux-x64.tar.xz",
@@ -213,7 +217,7 @@ if not (install_dir / 'blender').exists():
             t.extract(m, install_dir)
     tar.unlink()
 
-# --- BPY driver ---
+# - Blender Python driver.
 driver = r'''
 import json, os
 from pathlib import Path

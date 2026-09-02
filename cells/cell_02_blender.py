@@ -24,12 +24,10 @@ from pathlib import Path
 
 from ._state import CTX
 
-# ---------------------------------------------------------------------------
-# Official Blender release links (linux-x64). Calendar versions simple URL rules.
-# To add a NEW version, simply append an entry here (or set custom_tar_url).
-# ---------------------------------------------------------------------------
+# - Official Blender Linux x64 release links.
+# - Add versions here or use custom_tar_url.
 BLENDER_DOWNLOADS = {
-    # key: short "major.minor" used in config.blender.major_minor
+    # - Keys are the major.minor config values.
     "3.6": "https://download.blender.org/release/Blender3.6/blender-3.6.12-linux-x64.tar.xz",
     "4.0": "https://download.blender.org/release/Blender4.0/blender-4.0.2-linux-x64.tar.xz",
     "4.1": "https://download.blender.org/release/Blender4.1/blender-4.1.1-linux-x64.tar.xz",
@@ -42,7 +40,7 @@ BLENDER_DOWNLOADS = {
     "5.2": "https://download.blender.org/release/Blender5.2/blender-5.2.1-linux-x64.tar.xz",
 }
 
-# Stable install location so we only download a version once per Colab session.
+# - Reuse each Blender download during the session.
 INSTALL_ROOT = Path("/content/blender_versions") if platform.system() != "Windows" \
     else Path(__file__).resolve().parent.parent / ".blender_install"
 
@@ -77,7 +75,7 @@ def _extract(tar_path: Path, install_to: Path) -> Path:
     """Extract an official Blender tar into install_to, returning the blender dir."""
     install_to.mkdir(parents=True, exist_ok=True)
     with tarfile.open(tar_path, "r:xz") as tar:
-        # strip the outer "blender-x.y.z" directory
+        # - Strip the outer Blender directory.
         members = tar.getmembers()
         base = members[0].name.split("/")[0]
         for m in members:
@@ -85,7 +83,7 @@ def _extract(tar_path: Path, install_to: Path) -> Path:
                 continue
             m.name = Path(m.name).relative_to(base).as_posix()
             tar.extract(m, install_to)
-    # locate blender binary
+    # - Find the Blender binary.
     for candidate in install_to.rglob("blender"):
         if candidate.is_file():
             return candidate
@@ -104,8 +102,7 @@ def install(major_minor: str = None, custom_tar_url: str = "") -> str:
     major_minor = major_minor or config.get("blender", {}).get("major_minor", "4.2")
     custom_tar_url = custom_tar_url or config.get("blender", {}).get("custom_tar_url", "")
 
-    # Local (non-Linux) dev: prefer an existing Blender on PATH so we can render
-    # locally without pulled the Colab Linux tar.
+    # - Use a local Blender binary during development.
     if platform.system() != "Linux":
         on_path = shutil.which("blender")
         if on_path:

@@ -14,7 +14,7 @@ import json
 import os
 from pathlib import Path
 
-# Raised so the calling (outer) coordinator can read them back.
+# - Expose results to the outer coordinator.
 RENDER_META = {}
 
 
@@ -52,7 +52,7 @@ render_cfg = cfg["render"]
 engine = render_cfg["engine"]
 mode = render_cfg["mode"]
 
-# --- load scene ---
+# - Load the scene.
 if os.path.exists(blend_path):
     bpy.ops.wm.open_mainfile(filepath=blend_path)
     print(f"[bpy] loaded scene from {blend_path}")
@@ -62,10 +62,10 @@ else:
 scene = bpy.context.scene
 rd = scene.render
 
-# --- resolution ---
+# - Set the resolution.
 rd.resolution_percentage = int(render_cfg.get("resolution_percentage", 100))
 
-# --- engine ---
+# - Set the render engine.
 engine_map = {
     "cycles": "CYCLES",
     "blender_eevee": "BLENDER_EEVEE",
@@ -77,7 +77,7 @@ ismetabolic = rd.engine == "CYCLES"
 if ismetabolic:
     cy = scene.cycles
     cy.samples = int(render_cfg.get("samples", 128))
-    # GPU device selection
+    # - Select the GPU device.
     use_gpu = render_cfg.get("use_gpu", True)
     prefs = bpy.context.preferences.addons["cycles"].preferences
     try:
@@ -93,16 +93,16 @@ if ismetabolic:
         pass
     rd.use_file_extension = True
 else:
-    # Eevee
+    # - Configure Eevee.
     rd.eevee.taa_render_samples = int(render_cfg.get("samples", 64))
 
-# --- output ---
+# - Configure output.
 Path(out_dir).mkdir(parents=True, exist_ok=True)
 fmt = render_cfg.get("file_format", "PNG")
 rd.filepath = str(Path(out_dir) / "frame_")
 
 if mode == "still":
-    # choose a representative frame for still renders
+    # - Set the still-render frame.
     scene.frame_set(int(render_cfg.get("frame_start", 1)))
     rd.filepath = str(Path(out_dir) / "render")
     rd.image_settings.file_format = fmt
@@ -111,7 +111,7 @@ if mode == "still":
     bpy.ops.render.render(write_still=True)
     print(f"[bpy] rendered still frame {scene.frame_current}")
 else:
-    # animation: frame-by-frame PNGs so user combines to video later
+    # - Render animation frames as PNG files.
     fstart = int(render_cfg.get("frame_start", scene.frame_start))
     fend = int(render_cfg.get("frame_end", scene.frame_end))
     fstep = int(render_cfg.get("frame_step", 1))

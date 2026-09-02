@@ -13,7 +13,7 @@ import json
 import sys
 from pathlib import Path
 
-# ensure `python -m cells.run_pipeline` works from repo root
+# - Keep repo-root imports working.
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -41,18 +41,18 @@ def run(overrides: list = None) -> dict:
     _apply_overrides(overrides or [])
     summary = {}
 
-    # cell 01: drive/config/file resolution
+    # - Resolve Drive, config, and files.
     r1 = cell01.run()
     summary["cell01"] = r1
 
-    # cell 02: install blender
+    # - Install Blender.
     r2 = cell02.install()
     summary["cell02"] = {"blender_exe": r2}
 
-    # cell 03: build bpy driver (no-op outer side; driver injected by cell 04)
+    # - Build the Blender driver.
     assert cell03.build_script()
 
-    # cell 04: render
+    # - Render the scene.
     r4 = cell04.render()
     summary["cell04"] = r4
 
