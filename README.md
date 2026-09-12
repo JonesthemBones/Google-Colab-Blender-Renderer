@@ -73,10 +73,3 @@ Blender version downloads are defined in `cells/cell_02_blender.py`.
 
 This project is licensed under the MIT License.
 See [LICENSE](LICENSE) for details.
-
-## Publishing updates
-
-- Regenerate the notebook with `python build_notebook.py`.
-- Commit the source and generated notebook.
-- Push to GitHub.
-- Share the Colab link above.
